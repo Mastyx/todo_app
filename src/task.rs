@@ -18,4 +18,12 @@ impl Task {
             completato: false,
         }
     }
+    // ritorna l'id del task
+    pub fn get_id(&self) -> &str {
+        &self.id
+    }
+
+    pub fn update_content(&mut self, new_content: String) {
+        self.contenuto = new_content;
+    }
 }
