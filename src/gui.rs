@@ -11,8 +11,11 @@ use ratatui::{
     backend::CrosstermBackend,
     layout::{Constraint, Direction, Layout},
     style::{Color, Modifier, Style, Stylize},
+    text::{Line, Span},
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
 };
+
+use crate::app::Task_app;
 
 // -----------------------------------------------
 pub fn run() -> io::Result<()> {
@@ -30,8 +33,21 @@ pub fn run() -> io::Result<()> {
     let backend = CrosstermBackend::new(standard_out);
     let mut terminal = Terminal::new(backend)?;
 
-    // cereiamo un vettore di test con dei dati
-    let elementi_prova = vec!["Task 1", "Task 2", "Task 3"];
+    // crea un app per task app
+    let mut app = Task_app::new();
+    app.crea_task(
+        "Titolo 1 ".to_string(),
+        "Contenuto del titolo 1 ".to_string(),
+    );
+    app.crea_task(
+        "Titolo 2".to_string(),
+        "Contenuto del titolo 2 ".to_string(),
+    );
+    app.crea_task(
+        "Titolo 3".to_string(),
+        "Contenuto del titolo 3 ".to_string(),
+    );
+
     let mut selezionato = ListState::default();
     selezionato.select(Some(0));
 
@@ -44,9 +60,29 @@ pub fn run() -> io::Result<()> {
                 .split(f.area());
             // -----------------------------------
 
-            let item: Vec<ListItem> = elementi_prova.iter().map(|v| ListItem::new(*v)).collect();
+            let item: Vec<ListItem> = app
+                .tasks
+                .iter()
+                .map(|task| {
+                    let simbolo = if task.completato { "[x]" } else { "[ ]" };
+                    let riga = format!("{} {} - {}", simbolo, task.titolo, task.contenuto);
+                    let stile = if task.completato {
+                        Style::default()
+                            .fg(Color::DarkGray)
+                            .add_modifier(Modifier::CROSSED_OUT)
+                    } else {
+                        Style::default()
+                    };
+                    ListItem::new(Line::from(Span::styled(riga, stile)))
+                })
+                .collect();
             let lista = List::new(item)
-                .block(Block::default().borders(Borders::ALL).title("Task"))
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Task")
+                        .border_type(BorderType::Rounded),
+                )
                 .highlight_style(
                     Style::default()
                         .bg(Color::Blue)
@@ -54,7 +90,7 @@ pub fn run() -> io::Result<()> {
                 )
                 .highlight_symbol(">");
 
-            // la lista ha bisogno di sapere quale riga e selezionata
+            // la lista ha bisogno  di sapere quale riga e selezionata
             f.render_stateful_widget(lista, container[0], &mut selezionato);
             // container[1] parte inferiore
             let help = Paragraph::new("premi q per uscire").block(
@@ -74,17 +110,13 @@ pub fn run() -> io::Result<()> {
                 KeyCode::Down => {
                     let i = selezionato
                         .selected()
-                        .map_or(0, |i| (i + 1) % elementi_prova.len());
+                        .map_or(0, |i| (i + 1) % app.tasks.len());
                     selezionato.select(Some(i));
                 }
                 KeyCode::Up => {
-                    let i = selezionato.selected().map_or(0, |i| {
-                        if i == 0 {
-                            elementi_prova.len() - 1
-                        } else {
-                            i - 1
-                        }
-                    });
+                    let i = selezionato
+                        .selected()
+                        .map_or(0, |i| if i == 0 { app.tasks.len() - 1 } else { i - 1 });
                     selezionato.select(Some(i));
                 }
                 _ => {}
