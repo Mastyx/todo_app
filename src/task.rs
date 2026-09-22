@@ -1,5 +1,10 @@
 // modulo task per la crazione della struttura task
+
 use uuid::Uuid as uuid;
+
+// la struttura base il task
+// cioè il compioto da svoglere
+// con le suo proprieta
 
 #[derive(Debug)]
 pub struct Task {
@@ -8,7 +13,7 @@ pub struct Task {
     pub contenuto: String,
     pub completato: bool,
 }
-
+// implementiamo i metodi
 impl Task {
     pub fn new(titolo: String, contenuto: String) -> Self {
         Self {
@@ -18,6 +23,7 @@ impl Task {
             completato: false,
         }
     }
+
     // ritorna l'id del task
     pub fn get_id(&self) -> &str {
         &self.id

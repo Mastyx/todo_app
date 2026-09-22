@@ -73,14 +73,10 @@ pub fn run() -> io::Result<()> {
             // dividiamo lo schermo in 2 diamo un layout
             let container = Layout::default()
                 .direction(Direction::Vertical)
-                .constraints([
-                    Constraint::Min(3),
-                    Constraint::Length(3),
-                    Constraint::Length(3),
-                ])
+                .constraints([Constraint::Min(3), Constraint::Length(3)])
                 .split(f.area());
             // -----------------------------------
-            // vettore contenente i task
+
             let item: Vec<ListItem> = app
                 .tasks
                 .iter()
@@ -97,8 +93,6 @@ pub fn run() -> io::Result<()> {
                     ListItem::new(Line::from(Span::styled(riga, stile)))
                 })
                 .collect();
-
-            // spazio riservato alla lista dei task
             let lista = List::new(item)
                 .block(
                     Block::default()
@@ -112,38 +106,22 @@ pub fn run() -> io::Result<()> {
                         .add_modifier(Modifier::BOLD),
                 )
                 .highlight_symbol(">");
+
             // la lista ha bisogno  di sapere quale riga e selezionata
             f.render_stateful_widget(lista, container[0], &mut selezionato);
-
-            // ---------------------------------
-            // riga di input visibile solo mentre si scrive
-            let mut input_text = match mode {
-                Mode::InserisciTitolo => format!("Titolo : {} ", input_titolo),
-                Mode::InserisciContenuto => format!(
-                    "Titolo  : {} | Contenuto : {}_",
-                    input_titolo, input_contenuto
-                ),
-                Mode::Normal => String::new(),
-            };
-            let input = Paragraph::new(input_text)
-                .block(Block::default().borders(Borders::ALL).title("new task"));
-            f.render_widget(input, container[1]);
-
-            // ----------------------------
-            // bARRA DI AIUTO
             // container[1] parte inferiore
             let help = match mode {
                 Mode::Normal => "q: esci | su/giu : naviga | invio : completa",
                 Mode::InserisciTitolo => "scrivi il titolo, invio per continuare",
-                Mode::InserisciContenuto => "inserisci il conetenuto, invio salva",
+                Model::InserisciContenuto => "inserisci il conetenuto, invio salva",
             };
-            let help_widget = Paragraph::new(help).block(
+            let help_widget = Paragraph::new("premi q per uscire").block(
                 Block::default()
                     .borders(Borders::ALL)
                     .title("Aiuto")
                     .border_type(BorderType::Rounded),
             );
-            f.render_widget(help_widget, container[2]);
+            f.render_widget(help_widget, container[1]);
             //
         })?;
 
@@ -151,11 +129,8 @@ pub fn run() -> io::Result<()> {
         // intercettiamo gli eventi della tastieria
         if let Event::Key(key) = event::read()? {
             match mode {
-                // nella modalita notrmale
                 Mode::Normal => match key.code {
-                    // esce dal loop dell'applicazione e termina
                     KeyCode::Char('q') => break,
-                    // movimento tasti freccia
                     KeyCode::Down => {
                         let i = selezionato
                             .selected()
@@ -178,64 +153,30 @@ pub fn run() -> io::Result<()> {
                             }
                         }
                     }
-                    // n per creare una nuovo task
                     KeyCode::Char('n') => {
                         mode = Mode::InserisciTitolo;
                         input_titolo.clear();
                         input_contenuto.clear();
                     }
-                    // d = delete per eliminare i task dalla lista
                     KeyCode::Char('d') => {
                         if let Some(i) = selezionato.selected() {
                             if i < app.tasks.len() {
                                 app.tasks.remove(i);
                                 if app.tasks.is_empty() {
-                                    selezionato.select(None);
-                                } else if i >= app.tasks.len() {
-                                    selezionato.select(Some(app.tasks.len() - 1));
+                                    selezionato.select(Some(app.tasks.len() - a));
                                 }
                             }
                         }
                     }
                     _ => {}
                 },
-                //  Quando siamo nella modalita Inserisci titolo
-                // intercettiamo l'enter per passare al inserisci contenuto
-                // esc per andare in normal mode
-                // backspace per cancellare carattere per carattere
-                // char invece intercetta il carattere premuto e l'aggiunge
-                Mode::InserisciTitolo => match key.code {
-                    KeyCode::Enter => mode = Mode::InserisciContenuto,
-                    KeyCode::Esc => mode = Mode::Normal,
-                    KeyCode::Backspace => {
-                        input_titolo.pop();
-                    }
-                    KeyCode::Char(c) => input_titolo.push(c),
-                    _ => {}
-                },
-                // Quando siamo in modalita InserisciContenuto
-                // Enter per completare e creare un nuovo task tramite crea_task
-                // Backspace cancella input_contenuto
-                // scrivendo intercettimo il tasto premuto con char che aggiunge a input_contenuto
-                // Esc torna alla modalita Normal
-                Mode::InserisciContenuto => match key.code {
-                    KeyCode::Enter => {
-                        let titolo = input_titolo.trim().to_string();
-                        let contenuto = input_contenuto.trim().to_string();
-                        if !titolo.is_empty() {
-                            app.crea_task(titolo, contenuto);
-                        }
-                        mode = Mode::Normal;
-                    }
-                    KeyCode::Esc => mode = Mode::Normal,
-                    KeyCode::Char(c) => input_contenuto.push(c),
-                    KeyCode::Backspace => {
-                        input_contenuto.pop();
-                    }
-                    _ => {}
-                },
+
+                Mode::InserisciTitolo => {}
+                Mode::InserisciContenuto => {}
             }
         }
+
+        // --- settiamo la parte principale
     }
     // quando esce dal loop l'applicazione termina
     // fondamentale rispristinare il terminale

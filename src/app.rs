@@ -1,4 +1,6 @@
 use crate::task::Task;
+// gestisce tutto cio che fa l'applicazione
+// tutte le operazioni sui task, creazione
 
 #[derive(Debug)]
 pub struct Task_app {
@@ -43,15 +45,11 @@ impl Task_app {
         // cerca il task per id
         let mut task_da_modificare = self.tasks.iter_mut().find(|task| task.get_id() == id);
         // ITER MU PERMETTE DI FARE DELLE MODIFICHE
-        println!("valore restituito da iter_mut : {:?}", task_da_modificare);
         match task_da_modificare {
             Some(task) => {
                 task.completato = !task.completato;
-                println!("Stato aggiornato : {:?}", task);
             }
-            None => {
-                println!("Nessun task trovato con questo id");
-            }
+            None => {}
         }
     }
 }
