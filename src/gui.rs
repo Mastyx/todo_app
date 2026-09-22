@@ -122,7 +122,7 @@ pub fn run() -> io::Result<()> {
             // ---------------------------------
             // riga di input visibile solo mentre si scrive
             let mut input_text = match mode {
-                Mode::InserisciTitolo => format!("Titolo : {} ", input_titolo),
+                Mode::InserisciTitolo => format!("Titolo : {}_", input_titolo),
                 Mode::InserisciContenuto => format!(
                     "Titolo  : {} | Contenuto : {}_",
                     input_titolo, input_contenuto
@@ -174,11 +174,15 @@ pub fn run() -> io::Result<()> {
                     }
                     // intercettiamo la pressione del tasto enter e spazio
                     // per cambiare lo stato del task
+                    // dobbiamo cercare la poszione reale data da order_vec e
+                    // altrimenti l'indice reale non coincide
                     KeyCode::Enter | KeyCode::Char(' ') => {
-                        if let Some(i) = selezionato.selected() {
-                            if let Some(task) = app.tasks.get(i) {
-                                let id = task.id.clone();
-                                app.change_status(&id);
+                        if let Some(display_i) = selezionato.selected() {
+                            if let Some(&real_i) = order_vec.get(display_i) {
+                                if let Some(task) = app.tasks.get(real_i) {
+                                    let id = task.id.clone();
+                                    app.change_status(&id);
+                                }
                             }
                         }
                     }
@@ -188,15 +192,20 @@ pub fn run() -> io::Result<()> {
                         input_titolo.clear();
                         input_contenuto.clear();
                     }
+
                     // d = delete per eliminare i task dalla lista
+                    // anche qui come nel evento enter
+                    // andiamo a nell order_vec che da l'id reale del task
                     KeyCode::Char('d') => {
-                        if let Some(i) = selezionato.selected() {
-                            if i < app.tasks.len() {
-                                app.tasks.remove(i);
-                                if app.tasks.is_empty() {
-                                    selezionato.select(None);
-                                } else if i >= app.tasks.len() {
-                                    selezionato.select(Some(app.tasks.len() - 1));
+                        if let Some(display_i) = selezionato.selected() {
+                            if let Some(&real_i) = order_vec.get(display_i) {
+                                if display_i < app.tasks.len() {
+                                    app.tasks.remove(display_i);
+                                    if app.tasks.is_empty() {
+                                        selezionato.select(None);
+                                    } else if display_i >= app.tasks.len() {
+                                        selezionato.select(Some(app.tasks.len() - 1));
+                                    }
                                 }
                             }
                         }
