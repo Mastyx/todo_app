@@ -69,6 +69,10 @@ pub fn run() -> io::Result<()> {
     selezionato.select(Some(0));
 
     loop {
+        // creiamo un vettore ordinato
+        let mut order_vec: Vec<usize> = (0..app.tasks.len()).collect();
+        order_vec.sort_by_key(|&i| app.tasks[i].completato);
+
         terminal.draw(|f| {
             // dividiamo lo schermo in 2 diamo un layout
             let container = Layout::default()
@@ -81,10 +85,10 @@ pub fn run() -> io::Result<()> {
                 .split(f.area());
             // -----------------------------------
             // vettore contenente i task
-            let item: Vec<ListItem> = app
-                .tasks
+            let item: Vec<ListItem> = order_vec
                 .iter()
-                .map(|task| {
+                .map(|&id| {
+                    let task = &app.tasks[id];
                     let simbolo = if task.completato { "[x]" } else { "[ ]" };
                     let riga = format!("{} {} - {}", simbolo, task.titolo, task.contenuto);
                     let stile = if task.completato {
