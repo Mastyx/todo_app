@@ -113,17 +113,17 @@ pub fn run() -> io::Result<()> {
             // la lista ha bisogno  di sapere quale riga e selezionata
             f.render_stateful_widget(lista, container[0], &mut selezionato);
 
-            // indicatore di scroll 
-            // per segnalare che ci sono delle task non visibili 
-            // utilizziamo Rect che importiamo 
+            // indicatore di scroll
+            // per segnalare che ci sono delle task non visibili
+            // utilizziamo Rect che importiamo
             let totale = order_vec.len();
             let altezza_visibile = container[0].height.saturating_sub(2) as usize;
             let offset = selezionato.offset(); // indice del primo elemento mostrato
-            // eventualita che ce altro sopra 
+            // eventualita che ce altro sopra
             if offset > 0 {
                 let area = Rect::new(
                     container[0].x + container[0].width.saturating_sub(2),
-                    container[0].y, 
+                    container[0].y,
                     1,
                     1,
                 );
@@ -132,14 +132,13 @@ pub fn run() -> io::Result<()> {
             // eventualita che ce altro sotto
             if offset + altezza_visibile < totale {
                 let area = Rect::new(
-                    container[0].x + container[0].width.saturating_sub(2), 
-                    container[0].y + container[0].height.saturating_sub(1), 
-                    1,1,
+                    container[0].x + container[0].width.saturating_sub(2),
+                    container[0].y + container[0].height.saturating_sub(1),
+                    1,
+                    1,
                 );
                 f.render_widget(Paragraph::new("↓"), area);
             }
-
-
 
             // ---------------------------------
             // riga di input visibile solo mentre si scrive
@@ -167,7 +166,7 @@ pub fn run() -> io::Result<()> {
             // container[1] parte inferiore
             let help = match mode {
                 Mode::Normal => {
-                    "[q] esci | su/giu : naviga | [n] : nuovo task | [invio] : completa | [d] : cancella"
+                    "[q] esci | su/giu : naviga | [n] : new | [invio] : complete | [d] : canc"
                 }
                 Mode::InserisciTitolo => "scrivi il titolo, [invio] per continuare",
                 Mode::InserisciContenuto => "inserisci il conetenuto, [invio] salva",
@@ -186,7 +185,6 @@ pub fn run() -> io::Result<()> {
         })?;
         // finisce la parte grafica p
         // --------------------------------------
-
 
         // Gestione eventi ----------------------
         // intercettiamo gli eventi della tastieria

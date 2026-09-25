@@ -7,8 +7,8 @@ use serde::{Deserialize, Serialize};
 // Serialize scrive Deserialize legge
 
 // la struttura base il task
-// cioè il compioto da svoglere
-// con le suo proprieta
+// cioè il compito da svoglere
+// con le sue proprieta id titolo contenuto completato
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
