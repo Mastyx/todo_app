@@ -1,8 +1,10 @@
-use std::io;
+use std::{fs, io};
 
 use crate::task::Task;
 // gestisce tutto cio che fa l'applicazione
 // tutte le operazioni sui task, creazione
+
+const FILE_TASKS: &str = "tasks.json";
 
 #[derive(Debug)]
 pub struct Task_app {
@@ -58,11 +60,24 @@ impl Task_app {
     // salva il vettore dei task su file
     // in formato json
     pub fn salva_task(&self) -> io::Result<()> {
+        let json = serde_json::to_string_pretty(&self.tasks)?;
+        fs::write(FILE_TASKS, json)?;
         Ok(())
     }
 
     // carica il task dal file se esiste
     pub fn carica_task() -> Self {
-        Self::new()
+        match fs::read_to_string(FILE_TASKS) {
+            Ok(contenuto) => {
+                match serde_json::from_str(&contenuto) {
+                    Ok(tasks) => Self { tasks },
+                    Err(_) => {
+                        // file corrotto o vuoto
+                        Self::new()
+                    }
+                }
+            }
+            Err(_) => Self::new(),
+        }
     }
 }

@@ -50,13 +50,7 @@ pub fn run() -> io::Result<()> {
 
     // crea un istanza di app per task app
     // di esempio
-    let mut app = Task_app::new();
-    for i in 0..20 {
-        app.crea_task(
-            format!("Titolo  {}", i).to_string(),
-            format!("Contenuto del titolo {} ", i).to_string(),
-        );
-    }
+    let mut app = Task_app::carica_task();
     // inizializza lo stato di tracciamento
     // per la lista selezionabile
     let mut selezionato = ListState::default();
@@ -196,16 +190,20 @@ pub fn run() -> io::Result<()> {
                     KeyCode::Char('q') => break,
                     // movimento tasti freccia
                     KeyCode::Down => {
-                        let i = selezionato
-                            .selected()
-                            .map_or(0, |i| (i + 1) % app.tasks.len());
-                        selezionato.select(Some(i));
+                        if !app.tasks.is_empty() {
+                            let i = selezionato
+                                .selected()
+                                .map_or(0, |i| (i + 1) % app.tasks.len());
+                            selezionato.select(Some(i));
+                        }
                     }
                     KeyCode::Up => {
-                        let i = selezionato
-                            .selected()
-                            .map_or(0, |i| if i == 0 { app.tasks.len() - 1 } else { i - 1 });
-                        selezionato.select(Some(i));
+                        if !app.tasks.is_empty() {
+                            let i = selezionato
+                                .selected()
+                                .map_or(0, |i| if i == 0 { app.tasks.len() - 1 } else { i - 1 });
+                            selezionato.select(Some(i));
+                        }
                     }
                     // intercettiamo la pressione del tasto enter e spazio
                     // per cambiare lo stato del task
@@ -217,6 +215,7 @@ pub fn run() -> io::Result<()> {
                                 if let Some(task) = app.tasks.get(real_i) {
                                     let id = task.id.clone();
                                     app.change_status(&id);
+                                    let _ = app.salva_task();
                                 }
                             }
                         }
@@ -265,6 +264,7 @@ pub fn run() -> io::Result<()> {
                         let contenuto = input_contenuto.trim().to_string();
                         if !titolo.is_empty() {
                             app.crea_task(titolo, contenuto);
+                            let _ = app.salva_task();
                         }
                         mode = Mode::Normal;
                     }
@@ -281,6 +281,7 @@ pub fn run() -> io::Result<()> {
                     KeyCode::Char('y') | KeyCode::Enter => {
                         if real_i < app.tasks.len() {
                             app.tasks.remove(real_i);
+                            let _ = app.salva_task();
                             if app.tasks.is_empty() {
                                 selezionato.select(None);
                             } else if let Some(display_i) = selezionato.selected() {
