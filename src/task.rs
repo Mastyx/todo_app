@@ -2,11 +2,15 @@
 
 use uuid::Uuid as uuid;
 
+// per rendere Task serializzabile
+use serde::{Deserialize, Serialize};
+// Serialize scrive Deserialize legge
+
 // la struttura base il task
 // cioè il compioto da svoglere
 // con le suo proprieta
 
-#[derive(Debug)]
+#[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
     pub titolo: String,
