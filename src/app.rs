@@ -1,3 +1,5 @@
+use std::io;
+
 use crate::task::Task;
 // gestisce tutto cio che fa l'applicazione
 // tutte le operazioni sui task, creazione
@@ -51,5 +53,16 @@ impl Task_app {
             }
             None => {}
         }
+    }
+
+    // salva il vettore dei task su file
+    // in formato json
+    pub fn salva_task(&self) -> io::Result<()> {
+        Ok(())
+    }
+
+    // carica il task dal file se esiste
+    pub fn carica_task() -> Self {
+        Self::new()
     }
 }
