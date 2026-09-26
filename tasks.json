@@ -1,26 +1,20 @@
 [
   {
-    "id": "dccbeb01-7944-49c9-a6ed-34c2205feb0b",
-    "titolo": "Titolo di prova",
-    "contenuto": "Contnutio del titolo di prova",
-    "completato": false
-  },
-  {
     "id": "87818b51-b44f-456f-8106-c9ff6f7364a0",
     "titolo": "Terzo titolo",
     "contenuto": "terzo contenuto",
     "completato": false
   },
   {
-    "id": "fb29c679-ccaf-4037-be7a-ba3b9f3519f4",
-    "titolo": "Task del cazzo",
-    "contenuto": "Questo e un task di prova",
-    "completato": true
-  },
-  {
     "id": "76a8f86c-3ee5-4953-b46e-8f4a7ab8823b",
     "titolo": "Prova anche questo",
     "contenuto": "Questo e un file di prova",
     "completato": false
+  },
+  {
+    "id": "e5578792-4f6f-4255-85f7-a09520780724",
+    "titolo": "Nuovo Titolo di prova",
+    "contenuto": "Contenuto del nuovo titolo di prova",
+    "completato": true
   }
 ]

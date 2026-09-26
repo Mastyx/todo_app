@@ -12,7 +12,7 @@ use ratatui::{
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style, Stylize},
     text::{Line, Span},
-    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph},
+    widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
 };
 
 use crate::app::Task_app;
@@ -71,6 +71,14 @@ pub fn run() -> io::Result<()> {
                     Constraint::Length(3),
                 ])
                 .split(f.area());
+
+            // dividiamo il container[0] la parte alta piu grande
+            // in 2 colonne affiancate
+            let colonne = Layout::default()
+                .direction(Direction::Horizontal)
+                .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
+                .split(container[0]);
+
             // -----------------------------------
             // vettore contenente i task
             let item: Vec<ListItem> = order_vec
@@ -78,7 +86,7 @@ pub fn run() -> io::Result<()> {
                 .map(|&id| {
                     let task = &app.tasks[id];
                     let simbolo = if task.completato { "[x]" } else { "[ ]" };
-                    let riga = format!("{} {} - {}", simbolo, task.titolo, task.contenuto);
+                    let riga = format!("{} {}", simbolo, task.titolo);
                     let stile = if task.completato {
                         Style::default()
                             .fg(Color::DarkGray)
@@ -90,7 +98,8 @@ pub fn run() -> io::Result<()> {
                 })
                 .collect();
 
-            // spazio riservato alla lista dei task
+            // spazio riservato alla lista di sinistra
+            // colonne[0] visualizza solo il segno e il titolo
             let lista = List::new(item)
                 .block(
                     Block::default()
@@ -105,19 +114,46 @@ pub fn run() -> io::Result<()> {
                 )
                 .highlight_symbol(">");
             // la lista ha bisogno  di sapere quale riga e selezionata
-            f.render_stateful_widget(lista, container[0], &mut selezionato);
+            f.render_stateful_widget(lista, colonne[0], &mut selezionato);
+
+            // colonne[1]-  colonna a destra per la visualizzazione del
+            // contenuto in anteprima del titolo selezionato a sisnist
+            //
+            // memorizziamo il il contenuto in una variabile
+            let contenuto_preview = if let Some(display_i) = selezionato.selected() {
+                if let Some(&real_i) = order_vec.get(display_i) {
+                    app.tasks.get(real_i).map(|t| t.contenuto.clone())
+                } else {
+                    None
+                }
+            } else {
+                None
+            };
+            // nel caso non abbiamo selezionato nulla
+            let testo_destra =
+                contenuto_preview.unwrap_or_else(|| "Nessun task selezionato".to_string());
+            // creiamo la parte destra
+            let anteprima = Paragraph::new(testo_destra)
+                .block(
+                    Block::default()
+                        .borders(Borders::ALL)
+                        .title("Contenuto")
+                        .border_type(BorderType::Rounded),
+                )
+                .wrap(Wrap { trim: false });
+            f.render_widget(anteprima, colonne[1]);
 
             // indicatore di scroll
             // per segnalare che ci sono delle task non visibili
             // utilizziamo Rect che importiamo
             let totale = order_vec.len();
-            let altezza_visibile = container[0].height.saturating_sub(2) as usize;
+            let altezza_visibile = colonne[0].height.saturating_sub(2) as usize;
             let offset = selezionato.offset(); // indice del primo elemento mostrato
             // eventualita che ce altro sopra
             if offset > 0 {
                 let area = Rect::new(
-                    container[0].x + container[0].width.saturating_sub(2),
-                    container[0].y,
+                    colonne[0].x + colonne[0].width.saturating_sub(2),
+                    colonne[0].y,
                     1,
                     1,
                 );
@@ -126,8 +162,8 @@ pub fn run() -> io::Result<()> {
             // eventualita che ce altro sotto
             if offset + altezza_visibile < totale {
                 let area = Rect::new(
-                    container[0].x + container[0].width.saturating_sub(2),
-                    container[0].y + container[0].height.saturating_sub(1),
+                    colonne[0].x + colonne[0].width.saturating_sub(2),
+                    colonne[0].y + colonne[0].height.saturating_sub(1),
                     1,
                     1,
                 );
@@ -190,6 +226,8 @@ pub fn run() -> io::Result<()> {
                     KeyCode::Char('q') => break,
                     // movimento tasti freccia
                     KeyCode::Down => {
+                        // inseriamo il controllo if altrimenti andremo a fare
+                        // una divisione per 0 andando in panic
                         if !app.tasks.is_empty() {
                             let i = selezionato
                                 .selected()
