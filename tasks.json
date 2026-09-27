@@ -2,8 +2,8 @@
   {
     "id": "87818b51-b44f-456f-8106-c9ff6f7364a0",
     "titolo": "Terzo titolo",
-    "contenuto": "terzo contenuto",
-    "completato": false
+    "contenuto": "il contenuto estato modificato per \nutilizzare un editor di testo\n\n\nterzo contenuto",
+    "completato": true
   },
   {
     "id": "76a8f86c-3ee5-4953-b46e-8f4a7ab8823b",
@@ -15,6 +15,36 @@
     "id": "e5578792-4f6f-4255-85f7-a09520780724",
     "titolo": "Nuovo Titolo di prova",
     "contenuto": "Contenuto del nuovo titolo di prova",
+    "completato": false
+  },
+  {
+    "id": "75538d02-9777-45aa-8b1b-8ab481cb3751",
+    "titolo": "Titolo del Nuovo Task",
+    "contenuto": "Pare che nella creazione del nuovo task non si vada nella modalita ediror di testo\nContenuto",
+    "completato": false
+  },
+  {
+    "id": "f58bed74-e2ca-4a5c-9177-d56f1c8babff",
+    "titolo": "TaskManager",
+    "contenuto": "Creazione di un Task Manager\n\n1) fase di preparazione del task \n\n2) struttura Task \n\tstruct Task {\n\t\ttitolo : String, \n\t\tcontenuto : String, \t\n\t}",
     "completato": true
+  },
+  {
+    "id": "bdf972dd-9069-4053-9b00-2576aa3fcf12",
+    "titolo": "Nuovo Task test",
+    "contenuto": "Contenuto del task test",
+    "completato": true
+  },
+  {
+    "id": "b55ef788-de9f-4650-8051-6f9c547265cc",
+    "titolo": "Task Nuovo 1",
+    "contenuto": "Contenuto del task nuovo 1\nil contenuto viene inserito automaticamente alla fine \ndei task \nquesto quando abbiamo molti task potrebbe essere un problema",
+    "completato": false
+  },
+  {
+    "id": "159d63ba-d717-47ab-b975-fe19b70df2a7",
+    "titolo": "Nuovissimo",
+    "contenuto": "Task bello nuovo nuovo",
+    "completato": false
   }
 ]

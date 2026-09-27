@@ -2,6 +2,7 @@
 use std::io;
 
 use crossterm::{
+    //Command,
     event::{self, Event, KeyCode},
     execute,
     terminal::{EnterAlternateScreen, LeaveAlternateScreen, disable_raw_mode, enable_raw_mode},
@@ -15,6 +16,11 @@ use ratatui::{
     widgets::{Block, BorderType, Borders, List, ListItem, ListState, Paragraph, Wrap},
 };
 
+// ++ per implementare un editor esterno che facilita la scrittura del contenuto
+use std::env;
+use std::fs;
+use std::process::Command;
+
 use crate::app::Task_app;
 // DEcidiamo di dare degli stati all'applicazione
 // attraverso un enum
@@ -24,6 +30,45 @@ enum Mode {
     InserisciContenuto,
     ConfermaElimina(usize),
 }
+
+// ++ aggiunta per editor esterno
+//sospende la Tui, apre l'editor esterno su un file temporaneo
+// contenente il testo passato e alla chiusura ritorna il nuovo testo
+fn modifica_in_editor(
+    terminal: &mut Terminal<CrosstermBackend<io::Stdout>>,
+    contenuto_attuale: &str,
+) -> io::Result<String> {
+    // file temporaneo dove scriviamo il contenuto da modificare
+    let percorso_tmp = env::temp_dir().join("todo_app_edit.txt");
+    fs::write(&percorso_tmp, contenuto_attuale)?;
+
+    // usciamo dalla modalita alternati per non andare in conflitto
+    // lasciando il terminale libero all'editor
+    disable_raw_mode();
+    execute!(terminal.backend_mut(), LeaveAlternateScreen)?;
+
+    // scegliamo l'editor : Variabile ambiente Editor altrimenti nano o vim
+
+    let editor = env::var("EDITOR").unwrap_or_else(|_| "vim".to_string());
+
+    //lancia il processo e aspettiamo che l'utente chiuda
+    let stato = Command::new(&editor).arg(&percorso_tmp).status();
+
+    // qualunque cosa succeda si rientra nella Tui
+    enable_raw_mode()?;
+    execute!(terminal.backend_mut(), EnterAlternateScreen)?;
+    terminal.clear()?;
+
+    // propaghiamo l'eventuale errore di lancio solo dopo aver ripristinato il terminale
+    stato?;
+
+    // rileggiamo il contenuto modificato
+    let nuovo_contenuto = fs::read_to_string(&percorso_tmp)?;
+    let _ = fs::remove_file(&percorso_tmp); // puliamo 
+
+    Ok(nuovo_contenuto.trim_end().to_string())
+}
+// fine modifica editor //
 
 // -----------------------------------------------
 pub fn run() -> io::Result<()> {
@@ -58,7 +103,7 @@ pub fn run() -> io::Result<()> {
 
     loop {
         // creiamo un vettore ordinato
-        let mut order_vec: Vec<usize> = (0..app.tasks.len()).collect();
+        let mut order_vec: Vec<usize> = (0..app.tasks.len()).rev().collect();
         order_vec.sort_by_key(|&i| app.tasks[i].completato);
 
         terminal.draw(|f| {
@@ -247,13 +292,33 @@ pub fn run() -> io::Result<()> {
                     // per cambiare lo stato del task
                     // dobbiamo cercare la poszione reale data da order_vec e
                     // altrimenti l'indice reale non coincide
-                    KeyCode::Enter | KeyCode::Char(' ') => {
+                    KeyCode::Char(' ') => {
                         if let Some(display_i) = selezionato.selected() {
                             if let Some(&real_i) = order_vec.get(display_i) {
                                 if let Some(task) = app.tasks.get(real_i) {
                                     let id = task.id.clone();
                                     app.change_status(&id);
                                     let _ = app.salva_task();
+                                }
+                            }
+                        }
+                    }
+
+                    // aple l'editor esterno sul contenuto del task selezionato
+                    KeyCode::Enter => {
+                        if let Some(display_i) = selezionato.selected() {
+                            if let Some(&real_i) = order_vec.get(display_i) {
+                                if let Some(task) = app.tasks.get(real_i) {
+                                    let contenuto_attuale = task.contenuto.clone();
+                                    match modifica_in_editor(&mut terminal, &contenuto_attuale) {
+                                        Ok(nuovo_contenuto) => {
+                                            if let Some(task_mut) = app.tasks.get_mut(real_i) {
+                                                task_mut.update_content(nuovo_contenuto);
+                                            }
+                                            let _ = app.salva_task();
+                                        }
+                                        Err(_) => {}
+                                    }
                                 }
                             }
                         }
