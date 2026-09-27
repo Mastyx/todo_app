@@ -1,5 +1,5 @@
 // interfaccia grafica (ratatui)
-use std::io;
+use std::{io, ops::ControlFlow};
 
 use crossterm::{
     //Command,
@@ -111,18 +111,30 @@ pub fn run() -> io::Result<()> {
             let container = Layout::default()
                 .direction(Direction::Vertical)
                 .constraints([
+                    Constraint::Length(3),
                     Constraint::Min(3),
                     Constraint::Length(3),
                     Constraint::Length(3),
                 ])
                 .split(f.area());
 
-            // dividiamo il container[0] la parte alta piu grande
+            // parte superiore per la visualizzazione dei giorni della settimana
+            // oppure solo i giorni dove abbiamo avuto dei task
+            let giorni_testo = "da inserire i giorni della settimana".to_string();
+            let giorni = Paragraph::new(giorni_testo).block(
+                Block::default()
+                    .title("Giorni")
+                    .borders(Borders::ALL)
+                    .border_type(BorderType::Rounded),
+            );
+            f.render_widget(giorni, container[0]);
+
+            // dividiamo il container[1] la parte alta piu grande
             // in 2 colonne affiancate
             let colonne = Layout::default()
                 .direction(Direction::Horizontal)
                 .constraints([Constraint::Percentage(30), Constraint::Percentage(70)])
-                .split(container[0]);
+                .split(container[1]);
 
             // -----------------------------------
             // vettore contenente i task
@@ -234,7 +246,7 @@ pub fn run() -> io::Result<()> {
             };
             let input = Paragraph::new(input_text)
                 .block(Block::default().borders(Borders::ALL).title("new task"));
-            f.render_widget(input, container[1]);
+            f.render_widget(input, container[2]);
 
             // ----------------------------
             // bARRA DI AIUTO
@@ -255,7 +267,7 @@ pub fn run() -> io::Result<()> {
                     .title("Aiuto")
                     .border_type(BorderType::Rounded),
             );
-            f.render_widget(help_widget, container[2]);
+            f.render_widget(help_widget, container[3]);
             //
         })?;
         // finisce la parte grafica p

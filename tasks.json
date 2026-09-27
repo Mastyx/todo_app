@@ -14,7 +14,7 @@
   {
     "id": "e5578792-4f6f-4255-85f7-a09520780724",
     "titolo": "Nuovo Titolo di prova",
-    "contenuto": "Contenuto del nuovo titolo di prova",
+    "contenuto": "Modificato \nContenuto del nuovo titolo di prova",
     "completato": false
   },
   {
@@ -44,7 +44,7 @@
   {
     "id": "159d63ba-d717-47ab-b975-fe19b70df2a7",
     "titolo": "Nuovissimo",
-    "contenuto": "Task bello nuovo nuovo",
+    "contenuto": "Modificato \n\nTask bello nuovo nuovo",
     "completato": false
   }
 ]
