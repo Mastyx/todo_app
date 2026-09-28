@@ -128,14 +128,14 @@ pub fn run() -> io::Result<()> {
                 .tasks
                 .iter()
                 .filter(|t| !t.completato)
-                .filter_map(|t| NaiveDate::parse_from_str(&t.data, "%d/%m/%y").ok())
+                .filter_map(|t| NaiveDate::parse_from_str(&t.data, "%d-%m-%y").ok())
                 .collect();
 
             let oggi_data = Local::now().date_naive();
             let mut spans: Vec<Span> = Vec::new();
             for (i, giorno) in giorni_attivi.iter().enumerate() {
                 if i > 0 {
-                    spans.push(Span::raw("|"));
+                    spans.push(Span::raw(" | "));
                 }
                 // il giorno di oggi viene evidenziato
                 let stile = if *giorno == oggi_data {
@@ -145,10 +145,13 @@ pub fn run() -> io::Result<()> {
                 } else {
                     Style::default()
                 };
-                if spans.is_empty() {
-                    spans.push(Span::raw("Nessun Task Attivo"))
-                }
+                spans.push(Span::styled(giorno.format("%d-%m").to_string(), stile));
             }
+            // se non ce nulla da mostrare i task sono tutti fatti
+            if spans.is_empty() {
+                spans.push(Span::raw("Nessun Task Attivo "))
+            }
+
             let giorni = Paragraph::new(Line::from(spans)).block(
                 Block::default()
                     .title("Day")
