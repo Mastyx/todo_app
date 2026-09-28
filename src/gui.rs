@@ -1,6 +1,9 @@
 // interfaccia grafica (ratatui)
 use std::{io, ops::ControlFlow};
 
+// per i giorni della settimana
+use chrono::{Datelike, Local, Weekday};
+
 use crossterm::{
     //Command,
     event::{self, Event, KeyCode},
@@ -77,6 +80,20 @@ pub fn run() -> io::Result<()> {
     // invio
     enable_raw_mode()?;
 
+    // creiamo una variabile contenente il giorno attuale
+    // local::now da la data odierna
+    // .day() .month() giorno e mese
+    // il numero del giono della settimana 0-6
+    // viene fornito da weekday().num.....
+    let data = Local::now();
+    let oggi = format!(
+        "{}/{} - {}",
+        data.day(),
+        data.month(),
+        data.weekday().num_days_from_monday()
+    );
+    //  - - - - -
+
     // cra un istanza dell enum
     // e gli da uno stato iniziale
     let mut mode = Mode::Normal;
@@ -120,10 +137,10 @@ pub fn run() -> io::Result<()> {
 
             // parte superiore per la visualizzazione dei giorni della settimana
             // oppure solo i giorni dove abbiamo avuto dei task
-            let giorni_testo = "da inserire i giorni della settimana".to_string();
+            let giorni_testo = oggi.clone();
             let giorni = Paragraph::new(giorni_testo).block(
                 Block::default()
-                    .title("Giorni")
+                    .title("Day")
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded),
             );
