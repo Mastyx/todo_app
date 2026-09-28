@@ -1,8 +1,9 @@
 // interfaccia grafica (ratatui)
-use std::{io, ops::ControlFlow};
+use std::{collections, io, ops::ControlFlow};
 
 // per i giorni della settimana
-use chrono::{Datelike, Local, Weekday};
+use chrono::{Datelike, Local, NaiveDate, Weekday};
+use std::collections::BTreeSet;
 
 use crossterm::{
     //Command,
@@ -79,21 +80,6 @@ pub fn run() -> io::Result<()> {
     // la pressione dei tasti danno subito il comando senza aspettare
     // invio
     enable_raw_mode()?;
-
-    // creiamo una variabile contenente il giorno attuale
-    // local::now da la data odierna
-    // .day() .month() giorno e mese
-    // il numero del giono della settimana 0-6
-    // viene fornito da weekday().num.....
-    let data = Local::now();
-    let oggi = format!(
-        "{}/{} - {}",
-        data.day(),
-        data.month(),
-        data.weekday().num_days_from_monday()
-    );
-    //  - - - - -
-
     // cra un istanza dell enum
     // e gli da uno stato iniziale
     let mut mode = Mode::Normal;
@@ -137,8 +123,33 @@ pub fn run() -> io::Result<()> {
 
             // parte superiore per la visualizzazione dei giorni della settimana
             // oppure solo i giorni dove abbiamo avuto dei task
-            let giorni_testo = oggi.clone();
-            let giorni = Paragraph::new(giorni_testo).block(
+
+            let giorni_attivi: BTreeSet<NaiveDate> = app
+                .tasks
+                .iter()
+                .filter(|t| !t.completato)
+                .filter_map(|t| NaiveDate::parse_from_str(&t.data, "%d/%m/%y").ok())
+                .collect();
+
+            let oggi_data = Local::now().date_naive();
+            let mut spans: Vec<Span> = Vec::new();
+            for (i, giorno) in giorni_attivi.iter().enumerate() {
+                if i > 0 {
+                    spans.push(Span::raw("|"));
+                }
+                // il giorno di oggi viene evidenziato
+                let stile = if *giorno == oggi_data {
+                    Style::default()
+                        .fg(Color::Yellow)
+                        .add_modifier(Modifier::BOLD)
+                } else {
+                    Style::default()
+                };
+                if spans.is_empty() {
+                    spans.push(Span::raw("Nessun Task Attivo"))
+                }
+            }
+            let giorni = Paragraph::new(Line::from(spans)).block(
                 Block::default()
                     .title("Day")
                     .borders(Borders::ALL)
@@ -196,7 +207,13 @@ pub fn run() -> io::Result<()> {
             // memorizziamo il il contenuto in una variabile
             let contenuto_preview = if let Some(display_i) = selezionato.selected() {
                 if let Some(&real_i) = order_vec.get(display_i) {
-                    app.tasks.get(real_i).map(|t| t.contenuto.clone())
+                    app.tasks.get(real_i).map(|t| {
+                        if t.data.is_empty() {
+                            t.contenuto.clone()
+                        } else {
+                            format!("Data : {}\n\n{}", t.data, t.contenuto)
+                        }
+                    })
                 } else {
                     None
                 }

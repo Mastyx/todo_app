@@ -2,6 +2,7 @@
 
 use uuid::Uuid as uuid;
 
+use chrono::Local;
 // per rendere Task serializzabile
 use serde::{Deserialize, Serialize};
 // Serialize scrive Deserialize legge
@@ -13,6 +14,7 @@ use serde::{Deserialize, Serialize};
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Task {
     pub id: String,
+    pub data: String,
     pub titolo: String,
     pub contenuto: String,
     pub completato: bool,
@@ -22,6 +24,7 @@ impl Task {
     pub fn new(titolo: String, contenuto: String) -> Self {
         Self {
             id: uuid::new_v4().to_string(),
+            data: Local::now().format("%d-%m-%y").to_string(),
             titolo: titolo,
             contenuto: contenuto,
             completato: false,
