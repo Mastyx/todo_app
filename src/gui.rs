@@ -103,11 +103,57 @@ pub fn run() -> io::Result<()> {
     // per la lista selezionabile
     let mut selezionato = ListState::default();
     selezionato.select(Some(0));
+    // indice del giorno selezionato nella barra superiore
+    // None = nessun filtro, la lista mostra tutti i task
+    let mut giorno_idx: Option<usize> = None;
 
     loop {
         // creiamo un vettore ordinato
         let mut order_vec: Vec<usize> = (0..app.tasks.len()).rev().collect();
         order_vec.sort_by_key(|&i| app.tasks[i].completato);
+
+        // giorni che hanno almeno un task non completato, in ordine cronologico
+        let giorni_vec: Vec<NaiveDate> = app
+            .tasks
+            .iter()
+            .filter(|t| !t.completato)
+            .filter_map(|t| NaiveDate::parse_from_str(&t.data, "%d-%m-%y").ok())
+            .collect::<BTreeSet<_>>()
+            .into_iter()
+            .collect();
+
+        // se il giorno selezionato non esiste piu' (es. l'ultimo task di
+        // quel giorno e' stato completato) torniamo all'ultimo disponibile
+        if let Some(idx) = giorno_idx {
+            if giorni_vec.is_empty() {
+                giorno_idx = None;
+            } else if idx >= giorni_vec.len() {
+                giorno_idx = Some(giorni_vec.len() - 1);
+            }
+        }
+
+        // se e' selezionato un giorno, la lista mostra solo i task di quella data
+        if let Some(idx) = giorno_idx {
+            if let Some(giorno) = giorni_vec.get(idx) {
+                order_vec.retain(|&i| {
+                    NaiveDate::parse_from_str(&app.tasks[i].data, "%d-%m-%y")
+                        .map(|d| d == *giorno)
+                        .unwrap_or(false)
+                });
+            }
+        }
+
+        // la riga selezionata deve restare dentro i limiti dopo il filtro
+        if order_vec.is_empty() {
+            selezionato.select(None);
+        } else if let Some(i) = selezionato.selected() {
+            let max = order_vec.len() - 1;
+            if i > max {
+                selezionato.select(Some(max));
+            }
+        } else {
+            selezionato.select(Some(0));
+        }
 
         terminal.draw(|f| {
             // dividiamo lo schermo in 2 diamo un layout
@@ -121,40 +167,33 @@ pub fn run() -> io::Result<()> {
                 ])
                 .split(f.area());
 
-            // parte superiore per la visualizzazione dei giorni della settimana
-            // oppure solo i giorni dove abbiamo avuto dei task
-
-            let giorni_attivi: BTreeSet<NaiveDate> = app
-                .tasks
-                .iter()
-                .filter(|t| !t.completato)
-                .filter_map(|t| NaiveDate::parse_from_str(&t.data, "%d-%m-%y").ok())
-                .collect();
-
+            // parte superiore: giorni che hanno almeno un task non completato
+            // giorni_vec e giorno_idx sono calcolati fuori dalla draw
             let oggi_data = Local::now().date_naive();
             let mut spans: Vec<Span> = Vec::new();
-            for (i, giorno) in giorni_attivi.iter().enumerate() {
+            for (i, giorno) in giorni_vec.iter().enumerate() {
                 if i > 0 {
-                    spans.push(Span::raw(" | "));
+                    spans.push(Span::raw("  |  "));
                 }
-                // il giorno di oggi viene evidenziato
-                let stile = if *giorno == oggi_data {
+                let e_selezionato = giorno_idx == Some(i);
+                let stile = if e_selezionato {
+                    // il giorno scelto con le frecce ha lo sfondo evidenziato
+                    Style::default()
+                        .bg(Color::Blue)
+                        .fg(Color::White)
+                        .add_modifier(Modifier::BOLD)
+                } else if *giorno == oggi_data {
                     Style::default()
                         .fg(Color::Yellow)
                         .add_modifier(Modifier::BOLD)
                 } else {
                     Style::default()
                 };
-                spans.push(Span::styled(giorno.format("%d-%m").to_string(), stile));
+                spans.push(Span::styled(giorno.format("%d-%m-%y").to_string(), stile));
             }
-            // se non ce nulla da mostrare i task sono tutti fatti
-            if spans.is_empty() {
-                spans.push(Span::raw("Nessun Task Attivo "))
-            }
-
             let giorni = Paragraph::new(Line::from(spans)).block(
                 Block::default()
-                    .title("Day")
+                    .title("Day  (←/→ filtra, esc mostra tutti)")
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded),
             );
@@ -290,7 +329,7 @@ pub fn run() -> io::Result<()> {
             // container[1] parte inferiore
             let help = match mode {
                 Mode::Normal => {
-                    "[q] esci | su/giu : naviga | [n] : new | [invio] : complete | [d] : canc"
+                    "[q] esci | su/giu : naviga | sx/dx : filtra giorno | [esc] : tutti | [n] : new | [d] : canc"
                 }
                 Mode::InserisciTitolo => "scrivi il titolo, [invio] per continuare",
                 Mode::InserisciContenuto => "inserisci il conetenuto, [invio] salva",
@@ -322,20 +361,49 @@ pub fn run() -> io::Result<()> {
                     KeyCode::Down => {
                         // inseriamo il controllo if altrimenti andremo a fare
                         // una divisione per 0 andando in panic
-                        if !app.tasks.is_empty() {
+                        if !order_vec.is_empty() {
                             let i = selezionato
                                 .selected()
-                                .map_or(0, |i| (i + 1) % app.tasks.len());
+                                .map_or(0, |i| (i + 1) % order_vec.len());
                             selezionato.select(Some(i));
                         }
                     }
                     KeyCode::Up => {
-                        if !app.tasks.is_empty() {
+                        if !order_vec.is_empty() {
                             let i = selezionato
                                 .selected()
-                                .map_or(0, |i| if i == 0 { app.tasks.len() - 1 } else { i - 1 });
+                                .map_or(0, |i| if i == 0 { order_vec.len() - 1 } else { i - 1 });
                             selezionato.select(Some(i));
                         }
+                    }
+                    // naviga tra i giorni della barra superiore; la lista
+                    // dei task a sinistra si filtra in base al giorno scelto
+                    KeyCode::Left => {
+                        if !giorni_vec.is_empty() {
+                            let nuovo = match giorno_idx {
+                                None => giorni_vec.len() - 1,
+                                Some(0) => giorni_vec.len() - 1,
+                                Some(i) => i - 1,
+                            };
+                            giorno_idx = Some(nuovo);
+                            selezionato.select(Some(0));
+                        }
+                    }
+                    KeyCode::Right => {
+                        if !giorni_vec.is_empty() {
+                            let nuovo = match giorno_idx {
+                                None => 0,
+                                Some(i) if i + 1 >= giorni_vec.len() => 0,
+                                Some(i) => i + 1,
+                            };
+                            giorno_idx = Some(nuovo);
+                            selezionato.select(Some(0));
+                        }
+                    }
+                    // esc toglie il filtro e rimostra tutti i task
+                    KeyCode::Esc => {
+                        giorno_idx = None;
+                        selezionato.select(Some(0));
                     }
                     // intercettiamo la pressione del tasto enter e spazio
                     // per cambiare lo stato del task
