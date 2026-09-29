@@ -38,7 +38,7 @@
     "id": "650eb835-d800-4aec-9820-2f1463cfdfa7",
     "data": "24-09-26",
     "titolo": "nuovo taskino",
-    "contenuto": "Taskino nuovo nuovo",
+    "contenuto": "Taskino nuovo nuovo\n\nabbiamo cominciato a fare la cosa \nma non acora finita",
     "completato": false
   },
   {
@@ -53,6 +53,20 @@
     "data": "26-09-26",
     "titolo": "Un altro Taskino",
     "contenuto": "Task del cazzo",
+    "completato": false
+  },
+  {
+    "id": "ff2a09fb-522f-473b-9a82-2751af9917af",
+    "data": "29-09-26",
+    "titolo": "Jamm a fa na cosa",
+    "contenuto": "Jamm a fa na cosa",
+    "completato": false
+  },
+  {
+    "id": "ca470d61-f81e-44f9-9def-bc4c985e025b",
+    "data": "29-09-26",
+    "titolo": "titolo 3",
+    "contenuto": "Nuovo contenuto",
     "completato": false
   }
 ]
