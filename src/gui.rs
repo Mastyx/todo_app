@@ -276,7 +276,7 @@ pub fn run() -> io::Result<()> {
                         if t.data_esecuzione.is_empty() {
                             t.contenuto.clone()
                         } else {
-                            format!("Da eseguire in data : {}\n\n{}", t.data_esecuzione, t.contenuto)
+                            format!("Creato : {}\nDa eseguire in data : {}\n\n{}", t.data, t.data_esecuzione, t.contenuto)
                         }
                     })
                 } else {
