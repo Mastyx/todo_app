@@ -4,7 +4,7 @@
     "data": "27-09-26",
     "titolo": "Titolo 1",
     "contenuto": "Nuovo Titolo inserito\nle modifiche al nuovo titolo inserite",
-    "completato": false
+    "completato": true
   },
   {
     "id": "dc29195b-3009-497d-927a-9dd8aecfe833",
@@ -22,17 +22,17 @@
   },
   {
     "id": "1d875fcb-e32e-4a85-aac4-7af6079143ce",
-    "data": "28-09-26",
+    "data": "21-09-26",
     "titolo": "Andare in piscina",
     "contenuto": "ore 17.00 - Andare in piscina con Andrea\nmodificato per provare",
-    "completato": false
+    "completato": true
   },
   {
     "id": "d46903ee-a89f-4049-b60d-7b74ac552ad1",
     "data": "23-09-26",
     "titolo": "Portare Alyssa in palestra",
     "contenuto": "ore 17.00 portare alyssa in palestra",
-    "completato": false
+    "completato": true
   },
   {
     "id": "650eb835-d800-4aec-9820-2f1463cfdfa7",
@@ -53,7 +53,7 @@
     "data": "26-09-26",
     "titolo": "Un altro Taskino",
     "contenuto": "Task del cazzo",
-    "completato": false
+    "completato": true
   },
   {
     "id": "ff2a09fb-522f-473b-9a82-2751af9917af",
@@ -67,6 +67,27 @@
     "data": "29-09-26",
     "titolo": "titolo 3",
     "contenuto": "Nuovo contenuto",
+    "completato": false
+  },
+  {
+    "id": "3ed2ab22-5726-423a-b3d3-45c93d6a0a1d",
+    "data": "30-09-26",
+    "titolo": "Ricordati",
+    "contenuto": "Te devi ricordare di andare a fanculo",
+    "completato": false
+  },
+  {
+    "id": "7ea7390b-1c9d-4731-9253-c5be3ad7dc20",
+    "data": "30-09-26",
+    "titolo": "Sto titolo",
+    "contenuto": "sto cazzo di titolo",
+    "completato": false
+  },
+  {
+    "id": "7ca2e073-7f55-4cf3-9d51-4d8cc8d1a502",
+    "data": "01-10-26",
+    "titolo": "Task del 1 ottobre",
+    "contenuto": "Questo e il contenuto del 1 attobre",
     "completato": false
   }
 ]

@@ -170,12 +170,44 @@ pub fn run() -> io::Result<()> {
             // parte superiore: giorni che hanno almeno un task non completato
             // giorni_vec e giorno_idx sono calcolati fuori dalla draw
             let oggi_data = Local::now().date_naive();
+
+            // calcoliamo quanti giorni entrano nella larghezza disponibile
+            // -2 per i bordi del blocco, -4 di margine per le eventuali frecce
+            let larghezza_area = container[0].width.saturating_sub(2) as usize;
+            let larghezza_utile = larghezza_area.saturating_sub(4);
+            const LUNGHEZZA_DATA: usize = 5; // "gg-mm"
+            const LUNGHEZZA_SEPARATORE: usize = 3; // "  |  "
+            let capacita = if larghezza_utile >= LUNGHEZZA_DATA {
+                ((larghezza_utile + LUNGHEZZA_SEPARATORE) / (LUNGHEZZA_DATA + LUNGHEZZA_SEPARATORE))
+                    .max(1)
+            } else {
+                1
+            };
+
+            // finestra di giorni visibili: di norma ancorata ai piu recenti
+            // (in fondo al vettore), a meno che il giorno selezionato sia
+            // piu vecchio della finestra, nel qual caso la facciamo scorrere
+            let totale = giorni_vec.len();
+            let inizio_predefinito = totale.saturating_sub(capacita);
+            let inizio = match giorno_idx {
+                Some(idx) if idx < inizio_predefinito => idx,
+                _ => inizio_predefinito,
+            };
+            let fine = (inizio + capacita).min(totale); // esclusivo
+
+            let mostra_freccia_sx = inizio > 0;
+            let mostra_freccia_dx = fine < totale;
+
             let mut spans: Vec<Span> = Vec::new();
-            for (i, giorno) in giorni_vec.iter().enumerate() {
+            if mostra_freccia_sx {
+                spans.push(Span::styled("< ", Style::default().fg(Color::DarkGray)));
+            }
+            for (i, giorno) in giorni_vec[inizio..fine].iter().enumerate() {
+                let indice_reale = inizio + i;
                 if i > 0 {
-                    spans.push(Span::raw("  |  "));
+                    spans.push(Span::raw(" | "));
                 }
-                let e_selezionato = giorno_idx == Some(i);
+                let e_selezionato = giorno_idx == Some(indice_reale);
                 let stile = if e_selezionato {
                     // il giorno scelto con le frecce ha lo sfondo evidenziato
                     Style::default()
@@ -189,8 +221,12 @@ pub fn run() -> io::Result<()> {
                 } else {
                     Style::default()
                 };
-                spans.push(Span::styled(giorno.format("%d-%m-%y").to_string(), stile));
+                spans.push(Span::styled(giorno.format("%d-%m").to_string(), stile));
             }
+            if mostra_freccia_dx {
+                spans.push(Span::styled(" >", Style::default().fg(Color::DarkGray)));
+            }
+
             let giorni = Paragraph::new(Line::from(spans)).block(
                 Block::default()
                     .title("Day  (←/→ filtra, esc mostra tutti)")
@@ -329,7 +365,7 @@ pub fn run() -> io::Result<()> {
             // container[1] parte inferiore
             let help = match mode {
                 Mode::Normal => {
-                    "[q] esci | su/giu : naviga | sx/dx : filtra giorno | [esc] : tutti | [n] : new | [d] : canc"
+                    "[q] esci | ↑/↓ : naviga | ←/→ : filtra | [esc] : tutti | [n] : new | [d] : canc"
                 }
                 Mode::InserisciTitolo => "scrivi il titolo, [invio] per continuare",
                 Mode::InserisciContenuto => "inserisci il conetenuto, [invio] salva",
