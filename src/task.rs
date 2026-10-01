@@ -15,18 +15,23 @@ use serde::{Deserialize, Serialize};
 pub struct Task {
     pub id: String,
     pub data: String,
+
+    // data esecuzione
+    pub data_esecuzione: String,
+
     pub titolo: String,
     pub contenuto: String,
     pub completato: bool,
 }
 // implementiamo i metodi
 impl Task {
-    pub fn new(titolo: String, contenuto: String) -> Self {
+    pub fn new(titolo: String, contenuto: String, data_esecuzione: String) -> Self {
         Self {
             id: uuid::new_v4().to_string(),
             data: Local::now().format("%d-%m-%y").to_string(),
             titolo: titolo,
             contenuto: contenuto,
+            data_esecuzione: data_esecuzione,
             completato: false,
         }
     }

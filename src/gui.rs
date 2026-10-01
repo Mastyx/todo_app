@@ -2,7 +2,7 @@
 use std::{collections, io, ops::ControlFlow};
 
 // per i giorni della settimana
-use chrono::{Datelike, Local, NaiveDate, Weekday};
+use chrono::{Datelike, Local, Months, NaiveDate, Weekday};
 use std::collections::BTreeSet;
 
 use crossterm::{
@@ -32,7 +32,22 @@ enum Mode {
     Normal,
     InserisciTitolo,
     InserisciContenuto,
+    // scelta della data di esecuzione (selettore a frecce)
+    InserisciData,
     ConfermaElimina(usize),
+}
+
+// nome del giorno della settimana in italiano
+fn giorno_it(w: Weekday) -> &'static str {
+    match w {
+        Weekday::Mon => "lunedi",
+        Weekday::Tue => "martedi",
+        Weekday::Wed => "mercoledi",
+        Weekday::Thu => "giovedi",
+        Weekday::Fri => "venerdi",
+        Weekday::Sat => "sabato",
+        Weekday::Sun => "domenica",
+    }
 }
 
 // ++ aggiunta per editor esterno
@@ -86,6 +101,8 @@ pub fn run() -> io::Result<()> {
     // le variabili che contengo i dati
     let mut input_titolo = String::new();
     let mut input_contenuto = String::new();
+    // data di esecuzione scelta durante la creazione (default = oggi)
+    let mut input_data: NaiveDate = Local::now().date_naive();
 
     // schermo alternativo
     let mut standard_out = io::stdout();
@@ -110,14 +127,20 @@ pub fn run() -> io::Result<()> {
     loop {
         // creiamo un vettore ordinato
         let mut order_vec: Vec<usize> = (0..app.tasks.len()).rev().collect();
-        order_vec.sort_by_key(|&i| app.tasks[i].completato);
+        // prima i non completati, poi per data di esecuzione crescente
+        // (sort stabile: a parita' di data resta l'ordine "ultimo creato prima")
+        order_vec.sort_by_key(|&i| {
+            let d = NaiveDate::parse_from_str(&app.tasks[i].data_esecuzione, "%d-%m-%y")
+                .unwrap_or(NaiveDate::MAX);
+            (app.tasks[i].completato, d)
+        });
 
-        // giorni che hanno almeno un task non completato, in ordine cronologico
+        // giorni di esecuzione che hanno almeno un task non completato, in ordine cronologico
         let giorni_vec: Vec<NaiveDate> = app
             .tasks
             .iter()
             .filter(|t| !t.completato)
-            .filter_map(|t| NaiveDate::parse_from_str(&t.data, "%d-%m-%y").ok())
+            .filter_map(|t| NaiveDate::parse_from_str(&t.data_esecuzione, "%d-%m-%y").ok())
             .collect::<BTreeSet<_>>()
             .into_iter()
             .collect();
@@ -136,7 +159,7 @@ pub fn run() -> io::Result<()> {
         if let Some(idx) = giorno_idx {
             if let Some(giorno) = giorni_vec.get(idx) {
                 order_vec.retain(|&i| {
-                    NaiveDate::parse_from_str(&app.tasks[i].data, "%d-%m-%y")
+                    NaiveDate::parse_from_str(&app.tasks[i].data_esecuzione, "%d-%m-%y")
                         .map(|d| d == *giorno)
                         .unwrap_or(false)
                 });
@@ -170,44 +193,12 @@ pub fn run() -> io::Result<()> {
             // parte superiore: giorni che hanno almeno un task non completato
             // giorni_vec e giorno_idx sono calcolati fuori dalla draw
             let oggi_data = Local::now().date_naive();
-
-            // calcoliamo quanti giorni entrano nella larghezza disponibile
-            // -2 per i bordi del blocco, -4 di margine per le eventuali frecce
-            let larghezza_area = container[0].width.saturating_sub(2) as usize;
-            let larghezza_utile = larghezza_area.saturating_sub(4);
-            const LUNGHEZZA_DATA: usize = 5; // "gg-mm"
-            const LUNGHEZZA_SEPARATORE: usize = 3; // "  |  "
-            let capacita = if larghezza_utile >= LUNGHEZZA_DATA {
-                ((larghezza_utile + LUNGHEZZA_SEPARATORE) / (LUNGHEZZA_DATA + LUNGHEZZA_SEPARATORE))
-                    .max(1)
-            } else {
-                1
-            };
-
-            // finestra di giorni visibili: di norma ancorata ai piu recenti
-            // (in fondo al vettore), a meno che il giorno selezionato sia
-            // piu vecchio della finestra, nel qual caso la facciamo scorrere
-            let totale = giorni_vec.len();
-            let inizio_predefinito = totale.saturating_sub(capacita);
-            let inizio = match giorno_idx {
-                Some(idx) if idx < inizio_predefinito => idx,
-                _ => inizio_predefinito,
-            };
-            let fine = (inizio + capacita).min(totale); // esclusivo
-
-            let mostra_freccia_sx = inizio > 0;
-            let mostra_freccia_dx = fine < totale;
-
             let mut spans: Vec<Span> = Vec::new();
-            if mostra_freccia_sx {
-                spans.push(Span::styled("< ", Style::default().fg(Color::DarkGray)));
-            }
-            for (i, giorno) in giorni_vec[inizio..fine].iter().enumerate() {
-                let indice_reale = inizio + i;
+            for (i, giorno) in giorni_vec.iter().enumerate() {
                 if i > 0 {
-                    spans.push(Span::raw(" | "));
+                    spans.push(Span::raw("  |  "));
                 }
-                let e_selezionato = giorno_idx == Some(indice_reale);
+                let e_selezionato = giorno_idx == Some(i);
                 let stile = if e_selezionato {
                     // il giorno scelto con le frecce ha lo sfondo evidenziato
                     Style::default()
@@ -221,12 +212,8 @@ pub fn run() -> io::Result<()> {
                 } else {
                     Style::default()
                 };
-                spans.push(Span::styled(giorno.format("%d-%m").to_string(), stile));
+                spans.push(Span::styled(giorno.format("%d-%m-%y").to_string(), stile));
             }
-            if mostra_freccia_dx {
-                spans.push(Span::styled(" >", Style::default().fg(Color::DarkGray)));
-            }
-
             let giorni = Paragraph::new(Line::from(spans)).block(
                 Block::default()
                     .title("Day  (←/→ filtra, esc mostra tutti)")
@@ -286,10 +273,10 @@ pub fn run() -> io::Result<()> {
             let contenuto_preview = if let Some(display_i) = selezionato.selected() {
                 if let Some(&real_i) = order_vec.get(display_i) {
                     app.tasks.get(real_i).map(|t| {
-                        if t.data.is_empty() {
+                        if t.data_esecuzione.is_empty() {
                             t.contenuto.clone()
                         } else {
-                            format!("Data : {}\n\n{}", t.data, t.contenuto)
+                            format!("Da eseguire in data : {}\n\n{}", t.data_esecuzione, t.contenuto)
                         }
                     })
                 } else {
@@ -347,6 +334,12 @@ pub fn run() -> io::Result<()> {
                     "Titolo  : {} | Contenuto : {}_",
                     input_titolo, input_contenuto
                 ),
+                Mode::InserisciData => format!(
+                    "Titolo : {} | Data esecuzione : < {} > ({})",
+                    input_titolo,
+                    input_data.format("%d-%m-%y"),
+                    giorno_it(input_data.weekday())
+                ),
                 Mode::Normal => String::new(),
                 Mode::ConfermaElimina(real_i) => {
                     if let Some(task) = app.tasks.get(real_i) {
@@ -365,10 +358,13 @@ pub fn run() -> io::Result<()> {
             // container[1] parte inferiore
             let help = match mode {
                 Mode::Normal => {
-                    "[q] esci | ↑/↓ : naviga | ←/→ : filtra | [esc] : tutti | [n] : new | [d] : canc"
+                    "[q] esci | su/giu : naviga | sx/dx : filtra giorno | [esc] : tutti | [n] : new | [d] : canc"
                 }
                 Mode::InserisciTitolo => "scrivi il titolo, [invio] per continuare",
-                Mode::InserisciContenuto => "inserisci il conetenuto, [invio] salva",
+                Mode::InserisciContenuto => "inserisci il conetenuto, [invio] per scegliere la data",
+                Mode::InserisciData => {
+                    "sx/dx : -/+ 1 giorno | su/giu : +/- 1 settimana | [pgsu]/[pggiu] : +/- 1 mese | [t] oggi | [invio] salva"
+                }
                 Mode::ConfermaElimina(_) => {
                     "[y] o [invio] per confermare | [n] o [esc] per annullare"
                 }
@@ -515,20 +511,59 @@ pub fn run() -> io::Result<()> {
                 // scrivendo intercettimo il tasto premuto con char che aggiunge a input_contenuto
                 // Esc torna alla modalita Normal
                 Mode::InserisciContenuto => match key.code {
+                    // enter passa alla scelta della data di esecuzione
                     KeyCode::Enter => {
-                        let titolo = input_titolo.trim().to_string();
-                        let contenuto = input_contenuto.trim().to_string();
-                        if !titolo.is_empty() {
-                            app.crea_task(titolo, contenuto);
-                            let _ = app.salva_task();
-                        }
-                        mode = Mode::Normal;
+                        input_data = Local::now().date_naive();
+                        mode = Mode::InserisciData;
                     }
                     KeyCode::Esc => mode = Mode::Normal,
                     KeyCode::Char(c) => input_contenuto.push(c),
                     KeyCode::Backspace => {
                         input_contenuto.pop();
                     }
+                    _ => {}
+                },
+                // Selezione della data di esecuzione con le frecce
+                // Enter crea il task, Esc annulla
+                Mode::InserisciData => match key.code {
+                    KeyCode::Right => {
+                        input_data = input_data.succ_opt().unwrap_or(input_data);
+                    }
+                    KeyCode::Left => {
+                        input_data = input_data.pred_opt().unwrap_or(input_data);
+                    }
+                    KeyCode::Up => {
+                        input_data = input_data
+                            .checked_add_signed(chrono::Duration::days(7))
+                            .unwrap_or(input_data);
+                    }
+                    KeyCode::Down => {
+                        input_data = input_data
+                            .checked_sub_signed(chrono::Duration::days(7))
+                            .unwrap_or(input_data);
+                    }
+                    KeyCode::PageUp => {
+                        input_data = input_data
+                            .checked_add_months(Months::new(1))
+                            .unwrap_or(input_data);
+                    }
+                    KeyCode::PageDown => {
+                        input_data = input_data
+                            .checked_sub_months(Months::new(1))
+                            .unwrap_or(input_data);
+                    }
+                    KeyCode::Char('t') => input_data = Local::now().date_naive(),
+                    KeyCode::Enter => {
+                        let titolo = input_titolo.trim().to_string();
+                        let contenuto = input_contenuto.trim().to_string();
+                        if !titolo.is_empty() {
+                            let data_esecuzione = input_data.format("%d-%m-%y").to_string();
+                            app.crea_task(titolo, contenuto, data_esecuzione);
+                            let _ = app.salva_task();
+                        }
+                        mode = Mode::Normal;
+                    }
+                    KeyCode::Esc => mode = Mode::Normal,
                     _ => {}
                 },
                 // la pressione del d si entra in Modalita ConfermaElimina

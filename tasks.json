@@ -1,93 +1,34 @@
 [
   {
-    "id": "c7fb7482-c3c0-475e-899d-f18bff62b9ea",
-    "data": "27-09-26",
-    "titolo": "Titolo 1",
-    "contenuto": "Nuovo Titolo inserito\nle modifiche al nuovo titolo inserite",
-    "completato": true
-  },
-  {
-    "id": "dc29195b-3009-497d-927a-9dd8aecfe833",
-    "data": "26-09-26",
-    "titolo": "Titolo del Nuovo",
-    "contenuto": "Modificato\nContenuto",
-    "completato": false
-  },
-  {
-    "id": "1f4d80f0-712b-445a-8884-e2d71bdc3790",
-    "data": "28-09-26",
-    "titolo": "Titolo del cazzo",
-    "contenuto": "Contenuto del titolo del cazzo",
-    "completato": false
-  },
-  {
-    "id": "1d875fcb-e32e-4a85-aac4-7af6079143ce",
-    "data": "21-09-26",
-    "titolo": "Andare in piscina",
-    "contenuto": "ore 17.00 - Andare in piscina con Andrea\nmodificato per provare",
-    "completato": true
-  },
-  {
-    "id": "d46903ee-a89f-4049-b60d-7b74ac552ad1",
-    "data": "23-09-26",
-    "titolo": "Portare Alyssa in palestra",
-    "contenuto": "ore 17.00 portare alyssa in palestra",
-    "completato": true
-  },
-  {
-    "id": "650eb835-d800-4aec-9820-2f1463cfdfa7",
-    "data": "24-09-26",
-    "titolo": "nuovo taskino",
-    "contenuto": "Taskino nuovo nuovo\n\nabbiamo cominciato a fare la cosa \nma non acora finita",
-    "completato": false
-  },
-  {
-    "id": "6aba4810-ce6e-4463-b989-1577fb33eb39",
-    "data": "28-09-26",
-    "titolo": "Ricorda di andare a fanculo",
-    "contenuto": "Ricordati non te scordare di andare a fanculo",
-    "completato": false
-  },
-  {
-    "id": "efbee886-dbdc-407b-98cb-73e732f0373b",
-    "data": "26-09-26",
-    "titolo": "Un altro Taskino",
-    "contenuto": "Task del cazzo",
-    "completato": true
-  },
-  {
-    "id": "ff2a09fb-522f-473b-9a82-2751af9917af",
-    "data": "29-09-26",
-    "titolo": "Jamm a fa na cosa",
-    "contenuto": "Jamm a fa na cosa",
-    "completato": false
-  },
-  {
-    "id": "ca470d61-f81e-44f9-9def-bc4c985e025b",
-    "data": "29-09-26",
-    "titolo": "titolo 3",
-    "contenuto": "Nuovo contenuto",
-    "completato": false
-  },
-  {
-    "id": "3ed2ab22-5726-423a-b3d3-45c93d6a0a1d",
-    "data": "30-09-26",
-    "titolo": "Ricordati",
-    "contenuto": "Te devi ricordare di andare a fanculo",
-    "completato": false
-  },
-  {
-    "id": "7ea7390b-1c9d-4731-9253-c5be3ad7dc20",
-    "data": "30-09-26",
-    "titolo": "Sto titolo",
-    "contenuto": "sto cazzo di titolo",
-    "completato": false
-  },
-  {
-    "id": "7ca2e073-7f55-4cf3-9d51-4d8cc8d1a502",
+    "id": "b6073071-9799-43db-80c1-f8dd6c9d40b6",
     "data": "01-10-26",
-    "titolo": "Task del 1 ottobre",
-    "contenuto": "Questo e il contenuto del 1 attobre",
+    "data_esecuzione": "09-10-26",
+    "titolo": "Titolo 3",
+    "contenuto": "Nuovo contenuto del titolo 3",
+    "completato": false
+  },
+  {
+    "id": "b6b37a2f-5ee1-4dd5-a116-5f0301cccf3e",
+    "data": "01-10-26",
+    "data_esecuzione": "04-10-26",
+    "titolo": "Auguri",
+    "contenuto": "San Francesco, dare auguri\n\nadesso funziona quasi perfettamente",
+    "completato": false
+  },
+  {
+    "id": "3b233af9-1094-44b7-82a3-afeeec458988",
+    "data": "01-10-26",
+    "data_esecuzione": "14-04-27",
+    "titolo": "Provare",
+    "contenuto": "Contenuto lontano",
+    "completato": false
+  },
+  {
+    "id": "61d87b40-6213-467d-b284-15390a455073",
+    "data": "01-10-26",
+    "data_esecuzione": "03-10-26",
+    "titolo": "Andare dal Ragioniere",
+    "contenuto": "Andare dal ragioniere per ragionare",
     "completato": false
   }
 ]

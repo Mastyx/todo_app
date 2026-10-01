@@ -17,8 +17,8 @@ impl Task_app {
     }
 
     // AGGIUNGE ELEMENTI AL VETTORE
-    pub fn crea_task(&mut self, titolo: String, contenuto: String) {
-        let nuovo_task = Task::new(titolo, contenuto);
+    pub fn crea_task(&mut self, titolo: String, contenuto: String, data_esecuzione: String) {
+        let nuovo_task = Task::new(titolo, contenuto, data_esecuzione);
         self.tasks.push(nuovo_task);
     }
 
@@ -27,6 +27,7 @@ impl Task_app {
         for task in &self.tasks {
             println!("ID : {}", task.id);
             println!("Titolo : {}", task.titolo);
+            println!("Esecuzione : {}", task.data_esecuzione);
             println!("Testo : {}", task.contenuto);
             println!("completato : {}", task.completato);
             println!("----------------------------")
