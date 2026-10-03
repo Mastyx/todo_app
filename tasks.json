@@ -14,5 +14,13 @@
     "titolo": "portare andrea a paestum",
     "contenuto": "Giro in bici",
     "completato": false
+  },
+  {
+    "id": "75c0640a-ad21-4cf9-b4f8-1a62f8720a4b",
+    "data": "03-10-26",
+    "data_esecuzione": "03-10-26",
+    "titolo": "Far fare i compiti di italiano",
+    "contenuto": "Andrea deve fare italiano",
+    "completato": false
   }
 ]
